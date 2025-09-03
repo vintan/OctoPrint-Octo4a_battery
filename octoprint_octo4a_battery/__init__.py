@@ -4,8 +4,9 @@ import requests
 
 from octoprint.util import RepeatedTimer
 
-
 import octoprint.plugin
+
+import subprocess
 
 class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
@@ -61,14 +62,26 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
 
         x = requests.post(url, json = myobj)
 
+    def get_battery_level():
+        try:
+            # Execute the dumpsys battery command
+            result = subprocess.run(['dumpsys', 'battery'], capture_output=True, text=True, check=True)
+            output = result.stdout
+            
+            # Find the line with the battery level
+            for line in output.splitlines():
+                if "level:" in line:
+                    # Split the line and get the level value
+                    level = int(line.split(':')[1].strip())
+                    return level
+        except (subprocess.CalledProcessError, FileNotFoundError, ValueError) as e:
+            print(f"Error getting battery level: {e}")
+            return None
+
     def update_battery(self):
 
-        try:
-            path = self._settings.get(["batteryLevelPath"])
-            f = open(path, "r")
-            self._batteryLevel = f.read().strip()
-        except:
-            self._batteryLevel = "invalid path"; 
+        self._batteryLevel = get_battery_level()
+
         # self._batteryLevelTmp -= 1
         batteryStatus = "Full"
         self._logger.debug("match: level: %s" % self._batteryLevel)
