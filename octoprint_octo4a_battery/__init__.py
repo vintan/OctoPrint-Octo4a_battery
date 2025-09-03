@@ -7,6 +7,7 @@ from octoprint.util import RepeatedTimer
 import octoprint.plugin
 
 import subprocess
+import re
 
 class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
@@ -65,18 +66,32 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
     def get_battery_level():
         try:
             # Execute the dumpsys battery command
+            # Use shell=True if the command is not found without it,
+            # but be aware of the security implications.
+            # It's better to provide the full path to the adb shell if possible.
             result = subprocess.run(['dumpsys', 'battery'], capture_output=True, text=True, check=True)
             output = result.stdout
-            
-            # Find the line with the battery level
-            for line in output.splitlines():
-                if "level:" in line:
-                    # Split the line and get the level value
-                    level = int(line.split(':')[1].strip())
-                    return level
-        except (subprocess.CalledProcessError, FileNotFoundError, ValueError) as e:
-            print(f"Error getting battery level: {e}")
-            return None
+
+            # Use a regular expression to find the battery level
+            match = re.search(r'level:\s*(\d+)', output, re.IGNORECASE)
+            if match:
+                level = int(match.group(1))
+                return level
+            else:
+                print("Error: 'level:' not found in dumpsys battery output.")
+                return None
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing 'dumpsys battery' command: {e}")
+        print(f"Stdout: {e.stdout}")
+        print(f"Stderr: {e.stderr}")
+        return None
+    except FileNotFoundError:
+        print("Error: 'dumpsys' command not found. Ensure it's in your system's PATH.")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None
 
     def update_battery(self):
 
