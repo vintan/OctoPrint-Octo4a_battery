@@ -63,39 +63,37 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
 
         x = requests.post(url, json = myobj)
 
-    def get_battery_level():
+    def get_battery_level(self):
         try:
-            # Execute the dumpsys battery command
-            # Use shell=True if the command is not found without it,
-            # but be aware of the security implications.
-            # It's better to provide the full path to the adb shell if possible.
-            result = subprocess.run(['dumpsys', 'battery'], capture_output=True, text=True, check=True)
+            command = 'dumpsys battery'
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
             output = result.stdout
 
             # Use a regular expression to find the battery level
-            match = re.search(r'level:\s*(\d+)', output, re.IGNORECASE)
+            match = re.search(r'\s*level:\s*(\d+)', output, re.IGNORECASE)
             if match:
                 level = int(match.group(1))
                 return level
             else:
-                print("Error: 'level:' not found in dumpsys battery output.")
+                self._logger.debug("Error: 'level:' not found in dumpsys battery output.")
                 return None
 
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing 'dumpsys battery' command: {e}")
-        print(f"Stdout: {e.stdout}")
-        print(f"Stderr: {e.stderr}")
-        return None
-    except FileNotFoundError:
-        print("Error: 'dumpsys' command not found. Ensure it's in your system's PATH.")
-        return None
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return None
+        except subprocess.CalledProcessError as e:
+            self._logger.debug("Error executing 'dumpsys battery' command: %s" % e)
+            return None
+        except FileNotFoundError:
+            self._logger.debug("Error: 'dumpsys' command not found. Ensure it's in your system's PATH.")
+            return None
+        except Exception as e:
+            self._logger.debug("An unexpected error occurred: %s" % e)
+            return None
 
     def update_battery(self):
-
-        self._batteryLevel = get_battery_level()
+        battery_level = get_battery_level()
+        if battery_level is not None:
+            self._batteryLevel = battery_level
+        else:
+            self._batteryLevel = "Error"
 
         # self._batteryLevelTmp -= 1
         batteryStatus = "Full"
