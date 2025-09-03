@@ -70,22 +70,30 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
             output = result.stdout
 
             # Use a regular expression to find the battery level
-            match = re.search(r'\s*level:\s*(\d+)', output, re.IGNORECASE)
-            if match:
-                level = int(match.group(1))
-                return level
-            else:
-                self._logger.debug("Error: 'level:' not found in dumpsys battery output.")
-                return None
+            # match = re.search(r'\s*level:\s*(\d+)', output, re.IGNORECASE)
+            # if match:
+            #     level = int(match.group(1))
+            #     return level
+            # else:
+            #     self._logger.debug("Error: 'level:' not found in dumpsys battery output.")
+            #     return None
+            self._logger.debug("stdout: %s" % output)
+            self._logger.debug("stderr: %s" % result.stderr)
 
+        # except subprocess.CalledProcessError as e:
+        #     self._logger.debug("Error executing 'dumpsys battery' command: %s" % e)
+        #     return None
+        # except FileNotFoundError:
+        #     self._logger.debug("Error: 'dumpsys' command not found. Ensure it's in your system's PATH.")
+        #     return None
+        # except Exception as e:
+        #     self._logger.debug("An unexpected error occurred: %s" % e)
+        #     return None
         except subprocess.CalledProcessError as e:
-            self._logger.debug("Error executing 'dumpsys battery' command: %s" % e)
+            self._logger.debug("1stdout: %s" % e.stdout)
+            self._logger.debug("1stderr: %s" % e.stderr)
             return None
-        except FileNotFoundError:
-            self._logger.debug("Error: 'dumpsys' command not found. Ensure it's in your system's PATH.")
-            return None
-        except Exception as e:
-            self._logger.debug("An unexpected error occurred: %s" % e)
+        except:
             return None
 
     def update_battery(self):
