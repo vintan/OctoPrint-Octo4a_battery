@@ -89,7 +89,7 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
             return None
 
     def update_battery(self):
-        battery_level = get_battery_level()
+        battery_level = self.get_battery_level()
         if battery_level is not None:
             self._batteryLevel = battery_level
         else:
