@@ -65,7 +65,7 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
 
     def get_battery_level(self):
         try:
-            command = 'dumpsys battery'
+            command = '/system/bin/dumpsys battery'
             result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
             output = result.stdout
 
@@ -150,7 +150,7 @@ class Octo4a_batteryPlugin(octoprint.plugin.SettingsPlugin,
                 "current": self._plugin_version,
 
                 # update method: pip
-                "pip": "https://github.com/tobiasgraf/OctoPrint-Octo4a_battery/archive/{target_version}.zip",
+                "pip": "https://github.com/vintan/OctoPrint-Octo4a_battery/archive/{target_version}.zip",
             }
         }
         
